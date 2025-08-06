@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphTer - Real-time Data Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            color: #333333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            height: fit-content;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e3f2fd;
+        }
+
+        .chart-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e8f5e8;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h3 {
+            margin-bottom: 15px;
+            color: #2196F3;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e3f2fd;
+            border-radius: 8px;
+            background: white;
+            color: #333333;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #999999;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #81C784 0%, #64B5F6 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #F44336 0%, #E91E63 100%);
+        }
+
+        .serial-status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-disconnected {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid #F44336;
+            color: #F44336;
+        }
+
+        .status-connected {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid #4CAF50;
+            color: #4CAF50;
+        }
+
+        .data-preview {
+            background: linear-gradient(135deg, #f1f8e9 0%, #e3f2fd 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #e8f5e8;
+        }
+
+        .data-preview h4 {
+            margin-bottom: 10px;
+            color: #2196F3;
+        }
+
+        .data-point {
+            font-family: monospace;
+            font-size: 12px;
+            opacity: 0.8;
+            padding: 2px 0;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .download-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .color-input {
+            width: 60px !important;
+            height: 40px;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 2px solid #e3f2fd;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #2196F3;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #333333;
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .flex-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GraphTer</h1>
+            <p>Real-time Data Visualization Platform</p>
+        </div>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="section">
+                    <h3>📊 Data Source</h3>
+                    <div class="form-group">
+                        <label>Data Source Type:</label>
+                        <select id="dataSource">
+                            <option value="manual">Manual Input</option>
+                            <option value="file">Upload CSV/JSON</option>
+                            <option value="arduino">Arduino Serial Monitor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="manualInput" class="section">
+                    <h3>📝 Manual Data Input</h3>
+                    <div class="form-group">
+                        <label>Data (JSON format):</label>
+                        <textarea id="manualData" rows="4" placeholder='[{"x": 1, "y": 10}, {"x": 2, "y": 20}]'></textarea>
+                    </div>
+                    <button class="btn" onclick="loadManualData()">Load Data</button>
+                </div>
+
+                <div id="fileInput" class="section" style="display: none;">
+                    <h3>📁 File Upload</h3>
+                    <div class="file-input">
+                        <input type="file" id="fileUpload" accept=".csv,.json" onchange="handleFileUpload(event)">
+                        <label for="fileUpload" class="file-input-label">Choose File</label>
+                    </div>
+                </div>
+
+                <div id="arduinoInput" class="section" style="display: none;">
+                    <h3>🔌 Arduino Serial Monitor</h3>
+                    <div class="serial-status status-disconnected" id="serialStatus">
+                        Serial Monitor: Disconnected
+                    </div>
+                    <div class="form-group">
+                        <label>Baud Rate:</label>
+                        <select id="baudRate">
+                            <option value="9600">9600</option>
+                            <option value="115200">115200</option>
+                            <option value="57600">57600</option>
+                            <option value="38400">38400</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data Format:</label>
+                        <select id="dataFormat">
+                            <option value="single">Single Value</option>
+                            <option value="csv">CSV Format</option>
+                            <option value="json">JSON Format</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="connectSerial()">Connect</button>
+                    <button class="btn btn-danger" onclick="disconnectSerial()">Disconnect</button>
+                    <button class="btn btn-secondary" onclick="clearData()">Clear Data</button>
+                    
+                    <div class="data-preview" id="dataPreview">
+                        <h4>📡 Live Data Stream</h4>
+                        <div id="dataPoints"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🎨 Chart Configuration</h3>
+                    <div class="form-group">
+                        <label>Chart Type:</label>
+                        <select id="chartType">
+                            <option value="line">Line Chart</option>
+                            <option value="bar">Bar Chart</option>
+                            <option value="scatter">Scatter Plot</option>
+                            <option value="area">Area Chart</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Chart Title:</label>
+                        <input type="text" id="chartTitle" placeholder="Enter chart title">
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>X-Axis Label:</label>
+                            <input type="text" id="xAxisLabel" placeholder="X-Axis">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Y-Axis Label:</label>
+                            <input type="text" id="yAxisLabel" placeholder="Y-Axis">
+                        </div>
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group">
+                            <label>Line Color:</label>
+                            <input type="color" id="lineColor" value="#4CAF50" class="color-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Background:</label>
+                            <input type="color" id="bgColor" value="#ffffff" class="color-input">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="updateChart()">Update Chart</button>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="download-section">
+                    <button class="btn" onclick="showExportModal()">📥 Export Options</button>
+                    <button class="btn btn-secondary" onclick="downloadImage()">📸 Download PNG</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()">📄 Download PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeExportModal()">&times;</span>
+            <h3>📥 Export Configuration</h3>
+            
+            <div class="form-group">
+                <label>Export Format:</label>
+                <select id="exportFormat">
+                    <option value="png">PNG Image</option>
+                    <option value="pdf">PDF Document</option>
+                    <option value="svg">SVG Vector</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Resolution:</label>
+                <select id="exportResolution">
+                    <option value="1">Standard (1x)</option>
+                    <option value="2">High (2x)</option>
+                    <option value="3">Ultra (3x)</option>
+                </select>
+            </div>
+            
+            <div class="flex-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Width (px):</label>
+                    <input type="number" id="exportWidth" value="800">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Height (px):</label>
+                    <input type="number" id="exportHeight" value="600">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Background Color:</label>
+                <input type="color" id="exportBgColor" value="#ffffff" class="color-input">
+            </div>
+            
+            <div class="form-group">
+                <label>Include Title:</label>
+                <input type="checkbox" id="includeTitle" checked>
+            </div>
+            
+            <div class="form-group">
+                <label>Include Legend:</label>
+                <input type="checkbox" id="includeLegend" checked>
+            </div>
+            
+            <button class="btn" onclick="exportWithConfig()">Export</button>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+        let serialPort;
+        let reader;
+        let isConnected = false;
+        let chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Data',
+                data: [],
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                tension: 0.4
+            }]
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'X-Axis'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Y-Axis'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'GraphTer Chart'
+                        },
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Data source change handler
+        document.getElementById('dataSource').addEventListener('change', function() {
+            const value = this.value;
+            document.getElementById('manualInput').style.display = value === 'manual' ? 'block' : 'none';
+            document.getElementById('fileInput').style.display = value === 'file' ? 'block' : 'none';
+            document.getElementById('arduinoInput').style.display = value === 'arduino' ? 'block' : 'none';
+        });
+
+        // Manual data input
+        function loadManualData() {
+            try {
+                const data = JSON.parse(document.getElementById('manualData').value);
+                chartData.labels = data.map((item, index) => item.x || index);
+                chartData.datasets[0].data = data.map(item => item.y || item);
+                chart.update();
+            } catch (error) {
+                alert('Invalid JSON format. Please check your data.');
+            }
+        }
+
+        // File upload handler
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    if (file.name.endsWith('.json')) {
+                        const data = JSON.parse(e.target.result);
+                        chartData.labels = data.map((item, index) => item.x || index);
+                        chartData.datasets[0].data = data.map(item => item.y || item);
+                    } else if (file.name.endsWith('.csv')) {
+                        const lines = e.target.result.split('\n');
+                        const data = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            const values = lines[i].split(',');
+                            if (values.length >= 2) {
+                                data.push({x: parseFloat(values[0]), y: parseFloat(values[1])});
+                            }
+                        }
+                        chartData.labels = data.map(item => item.x);
+                        chartData.datasets[0].data = data.map(item => item.y);
+                    }
+                    chart.update();
+                } catch (error) {
+                    alert('Error parsing file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Serial connection (Web Serial API)
+        async function connectSerial() {
+            try {
+                if ('serial' in navigator) {
+                    serialPort = await navigator.serial.requestPort();
+                    await serialPort.open({ baudRate: parseInt(document.getElementById('baudRate').value) });
+                    
+                    const textDecoder = new TextDecoderStream();
+                    const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
+                    reader = textDecoder.readable.getReader();
+                    
+                    isConnected = true;
+                    document.getElementById('serialStatus').textContent = 'Serial Monitor: Connected';
+                    document.getElementById('serialStatus').className = 'serial-status status-connected';
+                    
+                    readSerialData();
+                } else {
+                    alert('Web Serial API not supported. Please use Chrome/Edge browser.');
+                }
+            } catch (error) {
+                alert('Error connecting to serial port: ' + error.message);
+            }
+        }
+
+        async function disconnectSerial() {
+            if (isConnected && serialPort) {
+                await reader.cancel();
+                await serialPort.close();
+                isConnected = false;
+                document.getElementById('serialStatus').textContent = 'Serial Monitor: Disconnected';
+                document.getElementById('serialStatus').className = 'serial-status status-disconnected';
+            }
+        }
+
+        async function readSerialData() {
+            let buffer = '';
+            while (isConnected) {
+                try {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += value;
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+                    
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            processSerialData(line.trim());
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error reading serial data:', error);
+                    break;
+                }
+            }
+        }
+
+        function processSerialData(data) {
+            const format = document.getElementById('dataFormat').value;
+            const dataPointsDiv = document.getElementById('dataPoints');
+            
+            // Add to preview
+            const dataPoint = document.createElement('div');
+            dataPoint.className = 'data-point';
+            dataPoint.textContent = new Date().toLocaleTimeString() + ': ' + data;
+            dataPointsDiv.appendChild(dataPoint);
+            
+            // Keep only last 10 entries
+            while (dataPointsDiv.children.length > 10) {
+                dataPointsDiv.removeChild(dataPointsDiv.firstChild);
+            }
+            
+            try {
+                let value;
+                if (format === 'single') {
+                    value = parseFloat(data);
+                } else if (format === 'csv') {
+                    const parts = data.split(',');
+                    value = parseFloat(parts[parts.length - 1]);
+                } else if (format === 'json') {
+                    const parsed = JSON.parse(data);
+                    value = parsed.value || parsed.y || Object.values(parsed)[0];
+                }
+                
+                if (!isNaN(value)) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    chartData.labels.push(timestamp);
+                    chartData.datasets[0].data.push(value);
+                    
+                    // Keep only last 50 data points
+                    if (chartData.labels.length > 50) {
+                        chartData.labels.shift();
+                        chartData.datasets[0].data.shift();
+                    }
+                    
+                    chart.update('none');
+                }
+            } catch (error) {
+                console.error('Error processing serial data:', error);
+            }
+        }
+
+        function clearData() {
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            chart.update();
+            document.getElementById('dataPoints').innerHTML = '';
+        }
+
+        // Chart configuration
+        function updateChart() {
+            const type = document.getElementById('chartType').value;
+            const title = document.getElementById('chartTitle').value;
+            const xLabel = document.getElementById('xAxisLabel').value;
+            const yLabel = document.getElementById('yAxisLabel').value;
+            const lineColor = document.getElementById('lineColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            
+            chart.destroy();
+            
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: type,
+                data: {
+                    ...chartData,
+                    datasets: [{
+                        ...chartData.datasets[0],
+                        borderColor: lineColor,
+                        backgroundColor: lineColor + '33',
+                        fill: type === 'area'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    backgroundColor: bgColor,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: xLabel || 'X-Axis'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: yLabel || 'Y-Axis'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title || 'GraphTer Chart'
+                        },
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export functions
+        function showExportModal() {
+            document.getElementById('exportModal').style.display = 'block';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function downloadImage() {
+            const canvas = document.getElementById('mainChart');
+            const link = document.createElement('a');
+            link.download = 'graphter-chart.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadPDF() {
+            const canvas = document.getElementById('mainChart');
+            html2canvas(canvas).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                const imgData = canvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', 10, 10, 180, 120);
+                pdf.save('graphter-chart.pdf');
+            });
+        }
+
+        function exportWithConfig() {
+            const format = document.getElementById('exportFormat').value;
+            const resolution = parseInt(document.getElementById('exportResolution').value);
+            const width = parseInt(document.getElementById('exportWidth').value);
+            const height = parseInt(document.getElementById('exportHeight').value);
+            const bgColor = document.getElementById('exportBgColor').value;
+            
+            const canvas = document.getElementById('mainChart');
+            const tempCanvas = document.createElement('canvas');
+            const ctx = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = width * resolution;
+            tempCanvas.height = height * resolution;
+            ctx.scale(resolution, resolution);
+            
+            // Fill background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw chart
+            ctx.drawImage(canvas, 0, 0, width, height);
+            
+            if (format === 'png') {
+                const link = document.createElement('a');
+                link.download = 'graphter-chart.png';
+                link.href = tempCanvas.toDataURL();
+                link.click();
+            } else if (format === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                const imgData = tempCanvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', 10, 10, 180, 120);
+                pdf.save('graphter-chart.pdf');
+            }
+            
+            closeExportModal();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+        });
+    </script>
+</body>
+</html>
