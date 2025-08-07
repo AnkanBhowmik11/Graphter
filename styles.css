@@ -443,3 +443,31 @@
                 flex-direction: column;
             }
         }
+        footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  position: static; /* remove this if not needed */
+  bottom: 0;
+  width: 100%;
+}
+
+.footer-content a {
+  display: inline-block;
+  color: #ccc;
+  text-decoration: none;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.footer-content a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+#about-us {
+  padding: 60px;
+  background-color: #f9f9f9;
+  margin-bottom: 60px; /* to avoid overlap with fixed footer */
+}

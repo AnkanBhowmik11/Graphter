@@ -1,0 +1,108 @@
+/* Global Styles */
+body {
+  margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #FFD700;
+  color: #333;
+}
+
+/* Make main "GraphTer" header bigger and bolder */
+.header h1 {
+  font-size: 48px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+
+h2 {
+  font-size: 28px;
+}
+
+
+ul {
+  padding-left: 20px;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(to right, #007acc, #2196f3);
+  padding: 40px 20px;
+  text-align: center;
+  color: white;
+  border-radius: 0 0 20px 20px;
+}
+
+.header .btn {
+  margin-top: 20px;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: white;
+  color: #007acc;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.header .btn:hover {
+  background-color: #f0f0f0;
+}
+
+/* Main Content */
+.content {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Card-like Sections */
+.card {
+  background-color: #fff9c4;
+  padding: 30px;
+  margin-bottom: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.media {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.media img,
+.media video {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Team Section */
+.team {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.member {
+  flex: 1 1 250px;
+  background-color: #e3f2fd;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.member h3 {
+  margin-top: 0;
+}
+
+/* Footer */
+footer {
+  background-color: #007acc;
+  color: white;
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 60px;
+  border-radius: 20px 20px 0 0;
+}
