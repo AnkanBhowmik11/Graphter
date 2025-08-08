@@ -106,3 +106,13 @@ footer {
   margin-top: 60px;
   border-radius: 20px 20px 0 0;
 }
+figure {
+  margin: 20px 0;
+  text-align: center;
+}
+
+figcaption {
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #555;
+}

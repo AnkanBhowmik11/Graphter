@@ -55,7 +55,7 @@
         // AI Data Conversion Functions
         async function convertWithAI() {
             // Hardcoded API key - replace with your actual Groq API key
-            const apiKey = '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';
+            const apiKey = '-';
             const inputData = document.getElementById('aiInput').value.trim();
             
             if (!inputData) {
